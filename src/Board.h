@@ -5,11 +5,11 @@
 #include <random>
 #include "GameState.h"
 
-#include <fstream>
+
 
 class Board
 {
-private:
+public:		//	*****	临时修改
 	int rows;				//	行数
 	int cols;				//	列数
 	int mineCount;			//	雷数
@@ -17,10 +17,16 @@ private:
 	GameState state;		//	胜负状态
 	int remainingSafeCells;	//	未打开的非雷格子数
 
-	std::vector<std::vector<int>>board;
-	std::vector<std::vector<bool>>revealed;
+	std::vector<std::vector<int>>board;		//	雷图
+	std::vector<std::vector<bool>>revealed;	//	格状态
 
 public:
+	//	读入配置
+	void inputBoardSize() {
+
+	}
+	//	难度选择
+	
 	//	构造函数
 	Board(int r, int c, int m) {
 		rows = r;
@@ -29,21 +35,15 @@ public:
 	}
 	//	初始化
 	void init() {
-		std::cout << "初始化" << std::endl;	//
-		steps = rows * cols;
-		state = GameState::Playing;
-		remainingSafeCells = rows * cols - mineCount;
+		steps = 0;										//	步数
+		state = GameState::Playing;						//	状态
+		remainingSafeCells = rows * cols - mineCount;	//	剩余安全块
 
-		std::cout << "构建board" << std::endl;	//
-		board.resize(rows, std::vector<int>(cols, 0));
-		std::cout << "构建revealed" << std::endl;	//
-		revealed.resize(rows, std::vector<bool>(cols, false));
+		board.resize(rows, std::vector<int>(cols, 0));			//	雷图
+		revealed.resize(rows, std::vector<bool>(cols, false));	//	格状态
 
-		std::cout << "放雷" << std::endl;	//
-		placeMines();
-
-		std::cout << "计算雷数" << std::endl;	//
-		calculateNumber();
+		placeMines();		//	布雷
+		calculateNumber();	//	计算雷数
 	}
 	//	随机放雷
 	void placeMines() {
@@ -59,6 +59,7 @@ public:
 			}
 			board[correntrow][correntcol] = -1;
 			correntMineCount++;
+
 			std::cout << correntrow			//	临时展示雷坐标
 				<< ":"
 				<< correntcol
@@ -67,11 +68,11 @@ public:
 		std::cout << "写入雷数: " << correntMineCount << std::endl;
 	}
 	//	判断越界
-	bool inRange(int r,int c) {
-		return r>=0 &&		//	ture	未越界
-			   r<rows &&	//	false	越界
-			   c>=0 &&
-			   c<cols;
+	bool inRange(int r, int c) {
+		return r >= 0 &&		//	true	未越界
+			r < rows &&	//	false	越界
+			c >= 0 &&
+			c < cols;
 	}
 	//	计算附近雷数	
 	void calculateNumber() {
@@ -90,7 +91,7 @@ public:
 				for (auto& dir : direction) {
 					int newRow = row + dir[0];
 					int newCol = col + dir[1];
-					
+
 					if (inRange(newRow, newCol)				//	判断越界
 						&& board[newRow][newCol] != -1) {	//	遇雷不加
 						board[newRow][newCol]++;
@@ -99,100 +100,146 @@ public:
 			}
 		}
 	}
-	// 导出SVG地图
-	void exportSVG(const std::string& filename)
-	{
-		std::ofstream file(filename);
+	//	打开格子
+	void reveal(int row, int col) {
+		if (!inRange(row, col) || revealed[row][col]) {	//	越界 已开
+			return;
+		}
+		//	标记
+		revealed[row][col] = true;
+		steps++;				//	步数 +1
 
-		if (!file.is_open())
-		{
-			std::cout << "SVG文件打开失败\n";
+		if (board[row][col] == -1) {		//	是雷
+			state = GameState::Lose;
 			return;
 		}
 
-		int cellSize = 30;
+		remainingSafeCells--;	//	安全格 -1
 
-		int width = cols * cellSize;
-		int height = rows * cellSize;
-
-
-		// SVG头
-		file << "<svg xmlns=\"http://www.w3.org/2000/svg\" "
-			<< "width=\"" << width << "\" "
-			<< "height=\"" << height << "\">\n";
-
-
-		// 绘制每个格子
-		for (int row = 0; row < rows; row++)
-		{
-			for (int col = 0; col < cols; col++)
-			{
-				int x = col * cellSize;
-				int y = row * cellSize;
-
-
-				// 格子边框
-				file << "<rect x=\"" << x
-					<< "\" y=\"" << y
-					<< "\" width=\"" << cellSize
-					<< "\" height=\"" << cellSize
-					<< "\" fill=\"white\" stroke=\"black\"/>\n";
-
-
-				// 文字
-				file << "<text x=\"" << x + 10
-					<< "\" y=\"" << y + 22
-					<< "\" font-size=\"20\">";
-
-
-				if (board[row][col] == -1)
-				{
-					file << "*";
-				}
-				else
-				{
-					file << board[row][col];
-				}
-
-
-				file << "</text>\n";
-			}
+		if (board[row][col] > 0) {			//	是数字
+			return;
 		}
 
 
-		// SVG结束
-		file << "</svg>";
-
-		file.close();
-
-		std::cout << "SVG生成完成\n";
+		expandEmpty(row, col);				//	是空块
 	}
-	// 打印地图(玩家视角)
+
+	//	展开空块
+	void expandEmpty(int row, int col) {
+		if (board[row][col] != 0) {			//	确保空块进入
+			return;
+		}
+
+		int direction[8][2] = {
+			{-1,-1},{-1,0},{-1,1},	//	上左  上  上右
+			{0 ,-1},       {0, 1},	//	  左        右
+			{1 ,-1},{1, 0},{1, 1}	//	下左  下  下右
+		};
+
+		for (auto& dir : direction) {
+			int newrow = row + dir[0];
+			int newcol = col + dir[1];
+			if (inRange(newrow, newcol)&& !revealed[newrow][newcol]) {
+
+				if (board[newrow][newcol] > 0) {		//	数字打开并跳过
+					revealed[newrow][newcol] = true;
+					remainingSafeCells--;				//	安全格 -1
+					continue;
+				}
+
+				if (board[newrow][newcol] == 0) {		//	0 打开并继续递归
+					revealed[newrow][newcol] = true;
+					remainingSafeCells--;				//	安全格 -1
+
+					expandEmpty(newrow, newcol);
+				}
+			}
+		}
+	}
+
+	//	检查胜利
+	GameState checkWin() {
+		if (state == GameState::Lose) {
+			return GameState::Lose;
+		}
+		if (state == GameState::Playing) {
+			if (remainingSafeCells == 0) {
+				return GameState::Win;
+			}
+			return GameState::Playing;
+		}
+	}
+
+	//	读取输入
+	void getCoordinate(int row,int col) {
+		
+		reveal(row, col);
+	}
+
+
+	//	打印地图 (玩家视角)
 	void display() {
-		for (int row = 0; row < rows; row++) {
+		//	横坐标
+		if (cols <= 59) {	//	控制台限制到59			
+			std::cout << "   ";
 			for (int col = 0; col < cols; col++) {
-				if (revealed[row][col] == false) {
-					std::cout << "□ ";
+				if (col < 10) {
+					std::cout << "0" << col << " ";
 				}
 				else {
-					std::cout << board[row][col]<<"  ";
+					std::cout << col << " ";
 				}
 			}
 			std::cout << std::endl;
 		}
+		//	竖坐标及地图
+		for (int row = 0; row < rows; row++) {			
+			for (int col = 0; col < cols; col++) {
+				//	竖坐标
+				if (col == 0) {	
+					if (row < 10) {
+						std::cout << "0" << row << " ";
+					}
+					else {
+						std::cout << row << " ";
+					}
+				}
+
+				if(!revealed[row][col]){				//	未打开
+					std::cout << " □ ";
+				}
+				else {
+					if (board[row][col] == -1) {		//	雷
+						std::cout << " * ";
+					}
+					else if (board[row][col] == 0) {	//	0不输出
+						std::cout << "   ";
+					}
+					else {								//	数字
+						std::cout << " " << board[row][col] << " ";
+					}
+				}
+			}
+			std::cout<< std::endl<<std::endl;
+		}
+		std::cout << std::endl << std::endl;
 	}
-	//	临时打印地图(上帝视角)	*****	//调试、胜利、失败时调用
+
+	//	临时打印地图 (上帝视角)	*****	//调试时调用
 	void displayDebug() {
 		for (int row = 0; row < rows; row++) {
 			for (int col = 0; col < cols; col++) {
 				if (board[row][col] == -1) {
 					std::cout << " * ";
 				}
+				else if (board[row][col] == 0) {	//	0不输出
+					std::cout << "   ";
+				}
 				else {
-					std::cout << " " << board[row][col] << " ";
+					std::cout <<" " << board[row][col] << " ";
 				}
 			}
-			std::cout << std::endl;
+			std::cout << std::endl << std::endl;
 		}
 	}
 
