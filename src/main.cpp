@@ -2,8 +2,6 @@
 
 int main()
 {
-	srand(time(nullptr));
-
 	int rows;
 	int cols;
 	int mineCount;

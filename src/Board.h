@@ -10,15 +10,23 @@
 class Board
 {
 public:		//	*****	临时修改
+
 	int rows;				//	行数
 	int cols;				//	列数
 	int mineCount;			//	雷数
 	int steps;				//	步数
 	GameState state;		//	胜负状态
 	int remainingSafeCells;	//	未打开的非雷格子数
+	std::mt19937 rng;
 
 	std::vector<std::vector<int>>board;		//	雷图
 	std::vector<std::vector<bool>>revealed;	//	格状态
+
+	static constexpr int direction[8][2] = {	//	方向
+			{-1,-1},{-1,0},{-1,1},	//	上左  上  上右
+			{0 ,-1},       {0, 1},	//	  左        右
+			{1 ,-1},{1, 0},{1, 1}	//	下左  下  下右
+	};
 
 public:
 	//	读入配置
@@ -49,21 +57,19 @@ public:
 	void placeMines() {
 		int correntMineCount = 0;	//	当前写入雷数
 
+		std::uniform_int_distribution<int> rowDist(0, rows-1);
+		std::uniform_int_distribution<int> colDist(0, cols-1);
+
 		while (correntMineCount < mineCount) {
-			int correntrow = rand() % rows;	//	当前行
-			int correntcol = rand() % cols;	//	当前列
+			int r = rowDist(rng);
+			int c = colDist(rng);
 
-
-			if (board[correntrow][correntcol] == -1) {
+			if (board[r][c] == -1) {
 				continue;
 			}
-			board[correntrow][correntcol] = -1;
+			board[r][c] = -1;
 			correntMineCount++;
 
-			std::cout << correntrow			//	临时展示雷坐标
-				<< ":"
-				<< correntcol
-				<< std::endl;
 		}
 		std::cout << "写入雷数: " << correntMineCount << std::endl;
 	}
@@ -76,12 +82,6 @@ public:
 	}
 	//	计算附近雷数	
 	void calculateNumber() {
-		int direction[8][2] = {
-			{-1,-1},{-1,0},{-1,1},	//	上左  上  上右
-			{0 ,-1},       {0, 1},	//	  左        右
-			{1 ,-1},{1, 0},{1, 1}	//	下左  下  下右
-		};
-
 		for (int row = 0; row < rows; row++) {
 			for (int col = 0; col < cols; col++) {
 				if (board[row][col] != -1) {			//	不是雷跳过
@@ -125,16 +125,12 @@ public:
 	}
 
 	//	展开空块
-	void expandEmpty(int row, int col) {
+	void expandEmpty(int row, int col) {	
 		if (board[row][col] != 0) {			//	确保空块进入
 			return;
 		}
 
-		int direction[8][2] = {
-			{-1,-1},{-1,0},{-1,1},	//	上左  上  上右
-			{0 ,-1},       {0, 1},	//	  左        右
-			{1 ,-1},{1, 0},{1, 1}	//	下左  下  下右
-		};
+
 
 		for (auto& dir : direction) {
 			int newrow = row + dir[0];
@@ -225,7 +221,7 @@ public:
 		std::cout << std::endl << std::endl;
 	}
 
-	//	临时打印地图 (上帝视角)	*****	//调试时调用
+	//	打印地图 (上帝视角)	*****	//调试、失败时调用
 	void displayDebug() {
 		for (int row = 0; row < rows; row++) {
 			for (int col = 0; col < cols; col++) {
