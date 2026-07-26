@@ -22,18 +22,18 @@ int main()
 	while (true) {
 		b.display();
 
-		if (b.checkWin() == GameState::Win) {	//	检查胜利
-			std::cout << "步数:" << b.steps << std::endl;
+		if (b.getState() == GameState::Win) {	//	检查胜利
+			std::cout << "步数:" << b.getSteps() << std::endl;
 			std::cout << "胜利" << std::endl;
 			break;
 		}
-		else if (b.checkWin() == GameState::Playing) {
+		else if (b.getState() == GameState::Playing) {
 			std::cout << "游戏中" << std::endl;
-			std::cout << "步数:" << b.steps << std::endl;
+			std::cout << "步数:" << b.getSteps() << std::endl;
 		}
-		else if (b.checkWin() == GameState::Lose) {
+		else if (b.getState() == GameState::Lose) {
 			b.displayDebug();
-			std::cout << "步数:" << b.steps << std::endl;
+			std::cout << "步数:" << b.getSteps() << std::endl;
 			std::cout << "失败" << std::endl;
 			break;
 		}
@@ -41,7 +41,7 @@ int main()
 		std::cout << "请输入坐标:";
 		std::cin >> col >> row;
 		b.getCoordinate(row,col);	//	(横坐标,竖坐标)
-
+		b.updateState();
 
 	}
 	
