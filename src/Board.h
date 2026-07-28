@@ -5,8 +5,6 @@
 #include <random>
 #include "GameState.h"
 
-
-
 class Board
 {
 private:		
@@ -29,12 +27,7 @@ private:
 	};
 
 public:
-	//	读入配置
-	void inputBoardSize() {
 
-	}
-	//	难度选择
-	
 	//	构造函数
 	Board(int r, int c, int m)
 		:rows(r),
@@ -57,13 +50,12 @@ public:
 	}
 	//	随机放雷
 	void placeMines() {
-		int correntMineCount = 0;	//	当前写入雷数
+		int currentMineCount = 0;	//	当前写入雷数
 
 		std::uniform_int_distribution<int> rowDist(0, rows-1);
 		std::uniform_int_distribution<int> colDist(0, cols-1);
 		int cnt = 0;
-		while (correntMineCount < mineCount) {
-			std::cout << cnt<<std::endl;
+		while (currentMineCount < mineCount) {
 			cnt++;
 			int r = rowDist(rng);
 			int c = colDist(rng);
@@ -72,13 +64,13 @@ public:
 				continue;
 			}
 			board[r][c] = -1;
-			correntMineCount++;
+			currentMineCount++;
 
 		}
-		std::cout << "写入雷数: " << correntMineCount << std::endl;
+		std::cout << "写入雷数: " << currentMineCount << std::endl;
 	}
 	//	判断越界
-	bool inRange(int r, int c) {
+	bool inRange(int r, int c) const {
 		return r >= 0 &&		//	true	未越界
 			r < rows &&	//	false	越界
 			c >= 0 &&
@@ -111,21 +103,24 @@ public:
 		}
 		//	标记
 		revealed[row][col] = true;
-		steps++;				//	步数 +1
+		steps++;						//	步数 +1
 
-		if (board[row][col] == -1) {		//	是雷
+		if (board[row][col] == -1) {					//	是雷
 			state = GameState::Lose;
 			return;
 		}
+		else {
+			remainingSafeCells--;		//	安全格 -1
 
-		remainingSafeCells--;	//	安全格 -1
+			if (board[row][col] > 0) {					//	是数字
+			}
+			else if (board[row][col] == 0) {			//	是空块
+				expandEmpty(row, col);
+			}
 
-		if (board[row][col] > 0) {			//	是数字
-			return;
+			if (remainingSafeCells == 0) { state = GameState::Win; }
 		}
 
-
-		expandEmpty(row, col);				//	是空块
 	}
 
 	//	展开空块
@@ -134,12 +129,14 @@ public:
 			return;
 		}
 
-
-
 		for (auto& dir : direction) {
 			int newrow = row + dir[0];
 			int newcol = col + dir[1];
 			if (inRange(newrow, newcol)&& !revealed[newrow][newcol]) {
+
+				if (board[newrow][newcol] == -1) {		//	雷跳过
+					continue;
+				}
 
 				if (board[newrow][newcol] > 0) {		//	数字打开并跳过
 					revealed[newrow][newcol] = true;
@@ -157,19 +154,13 @@ public:
 		}
 	}
 
-	//	更新胜负状态
-	void updateState() {	
-		if (state == GameState::Lose) { return; }
-		if (remainingSafeCells == 0) { state = GameState::Win; }
-	}
-
 	//	获取胜负状态
-	GameState getState(){
+	GameState getState()const {
 		return state;
 	}
 
 	//	获取步数
-	int getSteps() {
+	int getSteps()const {
 		return steps;
 	}
 

@@ -41,10 +41,7 @@ int main()
 		std::cout << "请输入坐标:";
 		std::cin >> col >> row;
 		b.getCoordinate(row,col);	//	(横坐标,竖坐标)
-		b.updateState();
 
 	}
 	
-
-	//b.exportSVG("minefield.svg");
 }
