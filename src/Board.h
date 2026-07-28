@@ -33,8 +33,15 @@ public:
 		:rows(r),
 		cols(c),
 		mineCount(m),
-		rng(std::random_device{}())
+		rng(std::random_device{}()),
+		steps(0),
+		state(GameState::Playing),
+		remainingSafeCells(0)
 	{
+		if (rows <= 0) { rows = 1; }
+		if (cols <= 0) { cols = 1; }
+		if (mineCount <= 0) { mineCount = 1; }
+		if (mineCount > rows * cols) { mineCount = rows * cols - 1; }
 	}
 	//	初始化
 	void init() {
@@ -54,9 +61,7 @@ public:
 
 		std::uniform_int_distribution<int> rowDist(0, rows-1);
 		std::uniform_int_distribution<int> colDist(0, cols-1);
-		int cnt = 0;
 		while (currentMineCount < mineCount) {
-			cnt++;
 			int r = rowDist(rng);
 			int c = colDist(rng);
 
@@ -67,7 +72,6 @@ public:
 			currentMineCount++;
 
 		}
-		std::cout << "写入雷数: " << currentMineCount << std::endl;
 	}
 	//	判断越界
 	bool inRange(int r, int c) const {
@@ -99,6 +103,7 @@ public:
 	//	打开格子
 	void reveal(int row, int col) {
 		if (!inRange(row, col) || revealed[row][col]) {	//	越界 已开
+			std::cout << "输入坐标无效或已打开" << std::endl;
 			return;
 		}
 		//	标记
@@ -112,9 +117,7 @@ public:
 		else {
 			remainingSafeCells--;		//	安全格 -1
 
-			if (board[row][col] > 0) {					//	是数字
-			}
-			else if (board[row][col] == 0) {			//	是空块
+			if (board[row][col] == 0) {					//	是空块
 				expandEmpty(row, col);
 			}
 
@@ -164,15 +167,8 @@ public:
 		return steps;
 	}
 
-	//	读取输入
-	void getCoordinate(int row,int col) {
-		
-		reveal(row, col);
-	}
-
-
 	//	打印地图 (玩家视角)
-	void display() {
+	void display() const{
 		//	横坐标
 		if (cols <= 59) {	//	控制台限制到59			
 			std::cout << "   ";
@@ -220,9 +216,32 @@ public:
 	}
 
 	//	打印地图 (上帝视角)	*****	//调试、失败时调用
-	void displayDebug() {
+	void displayDebug() const{
+		//	横坐标
+		if (cols <= 59) {	//	控制台限制到59			
+			std::cout << "   ";
+			for (int col = 0; col < cols; col++) {
+				if (col < 10) {
+					std::cout << "0" << col << " ";
+				}
+				else {
+					std::cout << col << " ";
+				}
+			}
+			std::cout << std::endl;
+		}
 		for (int row = 0; row < rows; row++) {
 			for (int col = 0; col < cols; col++) {
+				//	竖坐标
+				if (col == 0) {
+					if (row < 10) {
+						std::cout << "0" << row << " ";
+					}
+					else {
+						std::cout << row << " ";
+					}
+				}
+
 				if (board[row][col] == -1) {
 					std::cout << " * ";
 				}

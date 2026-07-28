@@ -1,4 +1,35 @@
 ﻿#include "Board.h"
+#include<string>
+
+
+int readInt(const std::string& prompt) {
+    int value;
+    while (true) {
+        std::cout << prompt;
+        std::cin >> value;
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "请输入有效数字" << std::endl;
+            continue;
+        }
+		return value;
+    }
+}
+
+void readCoordinate(const std::string& prompt,int& row, int& col) {
+	while (true) {
+		std::cout << prompt;
+		std::cin >> row >> col;
+		if (std::cin.fail()) {
+			std::cin.clear();
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			std::cout << "请输入有效数字" << std::endl;
+			continue;
+		}
+		return;
+	}
+}
 
 int main()
 {
@@ -6,15 +37,13 @@ int main()
 	int cols;
 	int mineCount;
 
-	std::cout << "请输入行数:";
-	std::cin >> rows;
-	std::cout << "请输入列数:";
-	std::cin >> cols;
-	std::cout << "请输入雷数:";
-	std::cin >> mineCount;
+	rows = readInt("请输入行数:");
+	cols = readInt("请输入列数:");
+	mineCount = readInt("请输入雷数:");
+
 	Board b(rows, cols, mineCount);
 	b.init();
-	b.displayDebug();
+	//b.displayDebug();
 
 	int row;
 	int col;
@@ -38,9 +67,8 @@ int main()
 			break;
 		}
 
-		std::cout << "请输入坐标:";
-		std::cin >> col >> row;
-		b.getCoordinate(row,col);	//	(横坐标,竖坐标)
+		readCoordinate("请输入坐标:",col,row);		//	(横坐标,竖坐标)
+		b.reveal(row,col);
 
 	}
 	
