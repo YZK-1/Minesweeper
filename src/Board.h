@@ -5,20 +5,27 @@
 #include <random>
 #include "GameState.h"
 
+enum class FlagState {		//	旗状态
+	None,		//	□
+	Flag,		//	P
+	Question	//	?
+};
+
 class Board
 {
-private:		
+private:
 
 	int rows;				//	行数
 	int cols;				//	列数
 	int mineCount;			//	雷数
-	std::mt19937 rng;		//	随机数
-	int steps;				//	步数
+	int flagCount;			//	旗数
+	std::mt19937 rng;		//	随机数种子
 	GameState state;		//	胜负状态
 	int remainingSafeCells;	//	未打开的非雷格子数
 
-	std::vector<std::vector<int>>board;		//	雷图
-	std::vector<std::vector<bool>>revealed;	//	格状态
+	std::vector<std::vector<int>>board;			//	雷图
+	std::vector<std::vector<bool>>revealed;		//	格状态
+	std::vector<std::vector<FlagState>>flagged;	//	旗状态
 
 	static constexpr int direction[8][2] = {	//	方向
 			{-1,-1},{-1,0},{-1,1},	//	上左  上  上右
@@ -27,133 +34,49 @@ private:
 	};
 
 public:
-
+	
 	//	构造函数
 	Board(int r, int c, int m)
 		:rows(r),
 		cols(c),
 		mineCount(m),
+		flagCount(0),
 		rng(std::random_device{}()),
-		steps(0),
 		state(GameState::Playing),
 		remainingSafeCells(0)
 	{
 		if (rows <= 0) { rows = 1; }
 		if (cols <= 0) { cols = 1; }
 		if (mineCount <= 0) { mineCount = 1; }
-		if (mineCount > rows * cols) { mineCount = rows * cols - 1; }
+		if (mineCount >= rows * cols) { mineCount = rows * cols - 1; }
 	}
+
 	//	初始化
 	void init() {
-		steps = 0;										//	步数
+		flagCount = mineCount;							//	旗数
 		state = GameState::Playing;						//	状态
 		remainingSafeCells = rows * cols - mineCount;	//	剩余安全块
 
-		board.resize(rows, std::vector<int>(cols, 0));			//	雷图
-		revealed.resize(rows, std::vector<bool>(cols, false));	//	格状态
+		board.resize(rows, std::vector<int>(cols, 0));							//	雷图
+		revealed.resize(rows, std::vector<bool>(cols, false));					//	格状态
+		flagged.resize(rows, std::vector<FlagState>(cols, FlagState::None));	//	旗状态
 
 		placeMines();		//	布雷
 		calculateNumber();	//	计算雷数
 	}
-	//	随机放雷
-	void placeMines() {
-		int currentMineCount = 0;	//	当前写入雷数
 
-		std::uniform_int_distribution<int> rowDist(0, rows-1);
-		std::uniform_int_distribution<int> colDist(0, cols-1);
-		while (currentMineCount < mineCount) {
-			int r = rowDist(rng);
-			int c = colDist(rng);
-
-			if (board[r][c] == -1) {
-				continue;
+	//	玩家操作
+	void playerMove(int row,int col,bool flagMode) {
+		if (flagMode) {							//	旗模式
+			if (!revealed[row][col]) {			//	未打开
+				toggleFlag(row, col);
 			}
-			board[r][c] = -1;
-			currentMineCount++;
-
-		}
-	}
-	//	判断越界
-	bool inRange(int r, int c) const {
-		return r >= 0 &&		//	true	未越界
-			r < rows &&	//	false	越界
-			c >= 0 &&
-			c < cols;
-	}
-	//	计算附近雷数	
-	void calculateNumber() {
-		for (int row = 0; row < rows; row++) {
-			for (int col = 0; col < cols; col++) {
-				if (board[row][col] != -1) {			//	不是雷跳过
-					continue;
-				}
-
-				for (auto& dir : direction) {
-					int newRow = row + dir[0];
-					int newCol = col + dir[1];
-
-					if (inRange(newRow, newCol)				//	判断越界
-						&& board[newRow][newCol] != -1) {	//	遇雷不加
-						board[newRow][newCol]++;
-					}
-				}
+			else {
+				chordReveal(row, col);
 			}
 		}
-	}
-	//	打开格子
-	void reveal(int row, int col) {
-		if (!inRange(row, col) || revealed[row][col]) {	//	越界 已开
-			std::cout << "输入坐标无效或已打开" << std::endl;
-			return;
-		}
-		//	标记
-		revealed[row][col] = true;
-		steps++;						//	步数 +1
-
-		if (board[row][col] == -1) {					//	是雷
-			state = GameState::Lose;
-			return;
-		}
-		else {
-			remainingSafeCells--;		//	安全格 -1
-
-			if (board[row][col] == 0) {					//	是空块
-				expandEmpty(row, col);
-			}
-
-			if (remainingSafeCells == 0) { state = GameState::Win; }
-		}
-
-	}
-
-	//	展开空块
-	void expandEmpty(int row, int col) {	
-		if (board[row][col] != 0) {			//	确保空块进入
-			return;
-		}
-
-		for (auto& dir : direction) {
-			int newrow = row + dir[0];
-			int newcol = col + dir[1];
-			if (inRange(newrow, newcol)&& !revealed[newrow][newcol]) {
-
-				if (board[newrow][newcol] == -1) {		//	雷跳过
-					continue;
-				}
-
-				if (board[newrow][newcol] > 0) {		//	数字打开并跳过
-					revealed[newrow][newcol] = true;
-					remainingSafeCells--;				//	安全格 -1
-					continue;
-				}
-
-				if (board[newrow][newcol] == 0) {		//	0 打开并继续递归
-					revealed[newrow][newcol] = true;
-					remainingSafeCells--;				//	安全格 -1
-
-					expandEmpty(newrow, newcol);
-				}
-			}
+		else {									//	铲模式
+			reveal(row, col);
 		}
 	}
 
@@ -162,9 +85,9 @@ public:
 		return state;
 	}
 
-	//	获取步数
-	int getSteps()const {
-		return steps;
+	//	获取旗数
+	int getFlags()const {
+		return flagCount;
 	}
 
 	//	打印地图 (玩家视角)
@@ -196,7 +119,10 @@ public:
 				}
 
 				if(!revealed[row][col]){				//	未打开
-					std::cout << " □ ";
+					if (flagged[row][col] == FlagState::None) { std::cout << " □ "; }
+					else if (flagged[row][col] == FlagState::Flag) { std::cout << " P "; }
+					else if (flagged[row][col] == FlagState::Question) { std::cout << " ? "; }
+					
 				}
 				else {
 					if (board[row][col] == -1) {		//	雷
@@ -212,7 +138,6 @@ public:
 			}
 			std::cout<< std::endl<<std::endl;
 		}
-		std::cout << std::endl << std::endl;
 	}
 
 	//	打印地图 (上帝视角)	*****	//调试、失败时调用
@@ -253,6 +178,165 @@ public:
 				}
 			}
 			std::cout << std::endl << std::endl;
+		}
+	}
+private:
+
+	//	随机放雷	
+	void placeMines() {
+		int currentMineCount = 0;	//	当前写入雷数
+
+		std::uniform_int_distribution<int> rowDist(0, rows - 1);
+		std::uniform_int_distribution<int> colDist(0, cols - 1);
+		while (currentMineCount < mineCount) {
+			int r = rowDist(rng);
+			int c = colDist(rng);
+
+			if (board[r][c] == -1) {
+				continue;
+			}
+			board[r][c] = -1;
+			currentMineCount++;
+
+		}
+	}
+
+	//	计算附近雷数	
+	void calculateNumber() {
+		for (int row = 0; row < rows; row++) {
+			for (int col = 0; col < cols; col++) {
+				if (board[row][col] != -1) {			//	不是雷跳过
+					continue;
+				}
+
+				for (auto& dir : direction) {
+					int newRow = row + dir[0];
+					int newCol = col + dir[1];
+
+					if (inRange(newRow, newCol)				//	判断越界
+						&& board[newRow][newCol] != -1) {	//	遇雷不加
+						board[newRow][newCol]++;
+					}
+				}
+			}
+		}
+	}
+
+	//	判断越界	
+	bool inRange(int r, int c) const {
+		return r >= 0 &&		//	true	未越界
+			r < rows &&	//	false	越界
+			c >= 0 &&
+			c < cols;
+	}
+
+	//	打开格子
+	void reveal(int row, int col) {
+		if (!inRange(row, col) || revealed[row][col]) {	//	越界 已开
+			//std::cout << "输入坐标无效或已打开" << std::endl;		////	提示要改	
+			return;
+		}
+		//	标记
+		revealed[row][col] = true;
+
+		if (board[row][col] == -1) {					//	是雷
+			state = GameState::Lose;
+			return;
+		}
+		else {
+			remainingSafeCells--;		//	安全格 -1
+
+			if (board[row][col] == 0) {					//	是空块
+				expandEmpty(row, col);
+			}
+
+			if (remainingSafeCells == 0) { state = GameState::Win; }
+		}
+
+	}
+
+	//	展开空块	
+	void expandEmpty(int row, int col) {
+		if (board[row][col] != 0) {			//	确保空块进入
+			return;								////	旗跳过
+		}
+
+		for (auto& dir : direction) {
+			int newrow = row + dir[0];
+			int newcol = col + dir[1];
+			if (inRange(newrow, newcol) && !revealed[newrow][newcol]	//	没有越界,没有展开
+				&& flagged[newrow][newcol] != FlagState::Flag) {		//	不是旗
+
+				if (board[newrow][newcol] == -1) {		//	雷跳过
+					continue;
+				}
+
+				if (board[newrow][newcol] > 0) {		//	数字打开并跳过
+					revealed[newrow][newcol] = true;
+					remainingSafeCells--;				//	安全格 -1
+					continue;
+				}
+
+				if (board[newrow][newcol] == 0) {		//	0 打开并继续递归
+					revealed[newrow][newcol] = true;
+					remainingSafeCells--;				//	安全格 -1
+
+					expandEmpty(newrow, newcol);
+				}
+			}
+		}
+	}
+
+	//	插旗
+	void toggleFlag(int row, int col) {
+		if (remainingSafeCells == rows * cols - mineCount) {
+			reveal(row, col);
+			return;		//	第一次点击直接展开,不插旗
+		}
+
+		if (revealed[row][col] == false) {		//	标记
+			if (flagged[row][col] == FlagState::None) {				//	标旗
+				if (flagCount > 0) {
+					flagged[row][col] = FlagState::Flag;
+					flagCount--;
+				}
+			}
+			else if (flagged[row][col] == FlagState::Flag) {		//	标 ?
+				flagged[row][col] = FlagState::Question;
+				flagCount++;
+			}
+			else if (flagged[row][col] == FlagState::Question) {	//	取消旗
+				flagged[row][col] = FlagState::None;
+			}
+		}
+	}
+
+	//	数字展开
+	void chordReveal(int row, int col) {
+		if (!revealed[row][col] || board[row][col] <= 0) {		//	没有展开,不是数字	
+			return;
+		}
+
+		int cnt = 0;
+		for (auto dir : direction) {			//	遍历 8 个方向
+			int newrow = row + dir[0];
+			int newcol = col + dir[1];
+
+			if (inRange(newrow, newcol) && flagged[newrow][newcol] == FlagState::Flag) {		//	计算旗数
+				cnt++;
+			}
+		}
+		if (board[row][col] == cnt) {
+			for (auto dir : direction) {		//	遍历 8 个方向
+				int newrow = row + dir[0];
+				int newcol = col + dir[1];
+
+				if (inRange(newrow, newcol) && flagged[newrow][newcol] != FlagState::Flag) {	//	不是旗
+					if (!revealed[newrow][newcol]) {	//	没打开
+						reveal(newrow, newcol);
+					}
+				}
+			}
 		}
 	}
 
