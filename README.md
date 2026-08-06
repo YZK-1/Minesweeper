@@ -72,6 +72,7 @@ Minesweeper
 - 优化输入逻辑("m"切换模式,不必每次循环输入模式)
 - 添加 steady_clock 计时器
 - 添加刷新屏幕功能
+- 定义与声明分离 (Board.h / Board.cpp)
 
 ### 2026-08-04
 
