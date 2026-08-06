@@ -57,9 +57,9 @@ public:
 		remainingSafeCells = rows * cols - mineCount;	//	剩余安全块
 		state = GameState::Playing;						//	状态
 
-		board.resize(rows, std::vector<int>(cols, 0));							//	雷图
-		revealed.resize(rows, std::vector<bool>(cols, false));					//	格状态
-		flagged.resize(rows, std::vector<FlagState>(cols, FlagState::None));	//	旗状态
+		board.assign(rows, std::vector<int>(cols, 0));							//	雷图
+		revealed.assign(rows, std::vector<bool>(cols, false));					//	格状态
+		flagged.assign(rows, std::vector< FlagState>(cols, FlagState::None));	//	旗状态
 
 		placeMines();		//	布雷
 		calculateNumber();	//	计算雷数
@@ -98,9 +98,6 @@ public:
 	//	重新开始
 	void reset(bool newMap = true) {
 		if (newMap) {	//	新图 重开
-			board.assign(rows, std::vector<int>(cols, 0));
-			revealed.assign(rows, std::vector<bool>(cols, false));
-			flagged.assign(rows, std::vector< FlagState>(cols, FlagState::None));
 			init();
 		}
 		else {			//	原图 重开
@@ -114,31 +111,14 @@ public:
 
 	//	打印地图 (玩家视角)
 	void display() const{
-		//	横坐标
-		if (cols <= 59) {	//	控制台限制到59			
-			std::cout << "   ";
-			for (int col = 0; col < cols; col++) {
-				if (col < 10) {
-					std::cout << "0" << col << " ";
-				}
-				else {
-					std::cout << col << " ";
-				}
-			}
-			std::cout << std::endl;
-		}
+		//	打印横坐标
+		printXLabel();
+
 		//	竖坐标及地图
 		for (int row = 0; row < rows; row++) {			
 			for (int col = 0; col < cols; col++) {
-				//	竖坐标
-				if (col == 0) {	
-					if (row < 10) {
-						std::cout << "0" << row << " ";
-					}
-					else {
-						std::cout << row << " ";
-					}
-				}
+				//	打印竖坐标
+				printYLabel(row, col);
 
 				if(!revealed[row][col]){				//	未打开
 					if (flagged[row][col] == FlagState::None) { std::cout << " □ "; }
@@ -150,7 +130,7 @@ public:
 					if (board[row][col] == -1) {		//	雷
 						std::cout << " * ";
 					}
-					else if (board[row][col] == 0) {	//	0不输出
+					else if (board[row][col] == 0) {	//	0 不输出
 						std::cout << "   ";
 					}
 					else {								//	数字
@@ -164,35 +144,18 @@ public:
 
 	//	打印地图 (上帝视角)		//调试、失败时调用
 	void displayDebug() const{
-		//	横坐标
-		if (cols <= 59) {	//	控制台限制到59			
-			std::cout << "   ";
-			for (int col = 0; col < cols; col++) {
-				if (col < 10) {
-					std::cout << "0" << col << " ";
-				}
-				else {
-					std::cout << col << " ";
-				}
-			}
-			std::cout << std::endl;
-		}
+		//	打印横坐标
+		printXLabel();
+
 		for (int row = 0; row < rows; row++) {
 			for (int col = 0; col < cols; col++) {
-				//	竖坐标
-				if (col == 0) {
-					if (row < 10) {
-						std::cout << "0" << row << " ";
-					}
-					else {
-						std::cout << row << " ";
-					}
-				}
+				//	打印竖坐标
+				printYLabel(row, col);
 
 				if (board[row][col] == -1) {
 					std::cout << " * ";
 				}
-				else if (board[row][col] == 0) {	//	0不输出
+				else if (board[row][col] == 0) {	//	0 不输出
 					std::cout << "   ";
 				}
 				else {
@@ -247,7 +210,7 @@ private:
 	//	判断越界	
 	bool inRange(int r, int c) const {
 		return r >= 0 &&		//	true	未越界
-			r < rows &&	//	false	越界
+			r < rows &&			//	false	越界
 			c >= 0 &&
 			c < cols;
 	}
@@ -274,13 +237,13 @@ private:
 
 			if (remainingSafeCells == 0) { state = GameState::Win; }
 		}
-
+														//	数字漏掉
 	}
 
 	//	展开空块	
 	void expandEmpty(int row, int col) {
 		if (board[row][col] != 0) {			//	确保空块进入
-			return;								////	旗跳过
+			return;								
 		}
 
 		for (auto& dir : direction) {
@@ -358,6 +321,39 @@ private:
 						reveal(newrow, newcol);
 					}
 				}
+			}
+		}
+	}
+
+	//	打印横坐标
+	void printXLabel() const {
+		std::cout << "   行数:" << rows
+			<< "  列数:" << cols
+			<< "  雷数:" << mineCount
+			<< std::endl << std::endl;
+
+		if (cols <= 59) {	//	控制台限制到59			
+			std::cout << "   ";
+			for (int col = 0; col < cols; col++) {
+				if (col < 10) {
+					std::cout << "0" << col << " ";
+				}
+				else {
+					std::cout << col << " ";
+				}
+			}
+			std::cout << std::endl;
+		}
+	}
+
+	//	打印竖坐标
+	void printYLabel(int row, int col) const {
+		if (col == 0) {
+			if (row < 10) {
+				std::cout << "0" << row << " ";
+			}
+			else {
+				std::cout << row << " ";
 			}
 		}
 	}
