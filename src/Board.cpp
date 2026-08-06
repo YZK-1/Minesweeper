@@ -81,10 +81,10 @@ void Board::display() const {
 
 	//	竖坐标及地图
 	for (int row = 0; row < rows; row++) {
-		for (int col = 0; col < cols; col++) {
-			//	打印竖坐标
-			printYLabel(row, col);
+		//	打印竖坐标
+		printYLabel(row);
 
+		for (int col = 0; col < cols; col++) {
 			if (!revealed[row][col]) {				//	未打开
 				if (flagged[row][col] == FlagState::None) { std::cout << " □ "; }
 				else if (flagged[row][col] == FlagState::Flag) { std::cout << " P "; }
@@ -113,10 +113,10 @@ void Board::displayDebug() const {
 	printXLabel();
 
 	for (int row = 0; row < rows; row++) {
-		for (int col = 0; col < cols; col++) {
-			//	打印竖坐标
-			printYLabel(row, col);
+		//	打印竖坐标
+		printYLabel(row);
 
+		for (int col = 0; col < cols; col++) {
 			if (board[row][col] == -1) {
 				std::cout << " * ";
 			}
@@ -211,26 +211,26 @@ void Board::expandEmpty(int row, int col) {
 	}
 
 	for (auto& dir : direction) {
-		const int newrow = row + dir[0];
-		const int newcol = col + dir[1];
-		if (inRange(newrow, newcol) && !revealed[newrow][newcol]	//	没有越界,没有展开
-			&& flagged[newrow][newcol] != FlagState::Flag) {		//	不是旗
+		const int newRow = row + dir[0];
+		const int newCol = col + dir[1];
+		if (inRange(newRow, newCol) && !revealed[newRow][newCol]	//	没有越界,没有展开
+			&& flagged[newRow][newCol] != FlagState::Flag) {		//	不是旗
 
-			if (board[newrow][newcol] == -1) {		//	雷跳过
+			if (board[newRow][newCol] == -1) {		//	雷跳过
 				continue;
 			}
 
-			if (board[newrow][newcol] > 0) {		//	数字打开并跳过
-				revealed[newrow][newcol] = true;
+			if (board[newRow][newCol] > 0) {		//	数字打开并跳过
+				revealed[newRow][newCol] = true;
 				remainingSafeCells--;				//	安全格 -1
 				continue;
 			}
 
-			if (board[newrow][newcol] == 0) {		//	0 打开并继续递归
-				revealed[newrow][newcol] = true;
+			if (board[newRow][newCol] == 0) {		//	0 打开并继续递归
+				revealed[newRow][newCol] = true;
 				remainingSafeCells--;				//	安全格 -1
 
-				expandEmpty(newrow, newcol);
+				expandEmpty(newRow, newCol);
 			}
 		}
 	}
@@ -267,7 +267,7 @@ void Board::chordReveal(int row, int col) {
 	}
 
 	int cnt = 0;
-	for (auto dir : direction) {			//	遍历 8 个方向
+	for (auto& dir : direction) {			//	遍历 8 个方向
 		const int newrow = row + dir[0];
 		const int newcol = col + dir[1];
 
@@ -276,7 +276,7 @@ void Board::chordReveal(int row, int col) {
 		}
 	}
 	if (board[row][col] == cnt) {
-		for (auto dir : direction) {		//	遍历 8 个方向
+		for (auto& dir : direction) {		//	遍历 8 个方向
 			const int newrow = row + dir[0];
 			const int newcol = col + dir[1];
 
@@ -311,13 +311,11 @@ void Board::printXLabel() const {
 }
 
 //	打印竖坐标
-void Board::printYLabel(int row, int col) const {
-	if (col == 0) {
+void Board::printYLabel(int row) const {
 		if (row < 10) {
 			std::cout << "0" << row << " ";
 		}
 		else {
 			std::cout << row << " ";
 		}
-	}
 }

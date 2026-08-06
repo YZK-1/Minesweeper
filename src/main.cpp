@@ -37,24 +37,27 @@ bool askRestart(Board& b) {
 	std::cout << "(0=原图重开,1=新图重开,其它=退出)" << std::endl;
 	std::cout << "是否重新开始:";
 	std::cin >> choice;
-	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
 	if (std::cin.fail()) {
 		std::cin.clear();
 		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 		return false;
 	}
-	else if (choice == 0) {		//	原图重开
-		b.reset(false);
-		return true;
-	}
-	else if (choice == 1) {		//	新图重开
-		b.reset(true);
-		return true;
-	}
 	else {
-		return false;
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		if (choice == 0) {			//	原图重开
+			b.reset(false);
+			return true;
+		}
+		else if (choice == 1) {		//	新图重开
+			b.reset(true);
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
+
 }
 //	游戏中
 bool playing(const Board& b) {
@@ -69,7 +72,8 @@ bool playing(const Board& b) {
 	}
 }
 
-bool game(Board& b, std::chrono::steady_clock::time_point& startTime) {
+//	对局
+bool match(Board& b, std::chrono::steady_clock::time_point& startTime) {
 	bool continueGame = false;
 
 	if (playing(b)) {	//	游戏中
@@ -126,7 +130,7 @@ int main()
 
 	while (true) {
 		system("cls");	//	清屏	
-		if (!game(b, startTime)) { break; }		//	不重开 结束	
+		if (!match(b, startTime)) { break; }		//	不重开 结束	
 
 		std::cout << (flagMode ? "[插旗]" : "[揭开]") << std::endl;
 		std::cout << "输入坐标,m=切换: ";

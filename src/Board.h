@@ -54,6 +54,6 @@ private:
 	void toggleFlag(int row, int col);					//	插旗
 	void chordReveal(int row, int col);					//	数字展开
 	void printXLabel() const;							//	打印横坐标
-	void printYLabel(int row, int col) const;			//	打印竖坐标
+	void printYLabel(int row) const;					//	打印竖坐标
 
 };
