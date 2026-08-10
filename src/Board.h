@@ -22,6 +22,7 @@ private:
 	std::mt19937 rng;		//	随机数种子
 	GameState state;		//	胜负状态
 	int remainingSafeCells;	//	未打开的非雷格子数
+	bool firstMove;			//	是否首次点击
 
 	std::vector<std::vector<int>>board;			//	雷图
 	std::vector<std::vector<bool>>revealed;		//	格状态
@@ -37,16 +38,17 @@ public:
 	
 	Board(int r, int c, int m);							//	构造函数
 	void init();										//	初始化
+	void firstClick(int col,int row);					//	第一次点击		//
 	void playerMove(int row, int col, bool flagMode);	//	玩家操作
-	GameState getState()const;							//	获取胜负状态
-	int getFlags()const;								//	获取旗数
+	GameState getState()const noexcept;					//	获取胜负状态
+	int getFlags()const noexcept;						//	获取旗数
 	void reset(bool newMap = true);						//	重新开始
 	void display() const;								//	打印地图 (玩家视角)
 	void displayDebug() const;							//	打印地图 (上帝视角)		//调试、失败时调用
 
 private:
 
-	void placeMines();									//	随机放雷		
+	void placeMines(int safeRow, int safeCol);			//	随机放雷		//
 	void calculateNumber();								//	计算附近雷数	
 	bool inRange(int r, int c) const;					//	判断越界	
 	void reveal(int row, int col);						//	打开格子

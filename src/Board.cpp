@@ -8,30 +8,41 @@ Board::Board(int r, int c, int m)
 	flagCount(0),
 	rng(std::random_device{}()),
 	state(GameState::Playing),
-	remainingSafeCells(0)
+	remainingSafeCells(0),
+	firstMove(true)
 {
 	if (rows <= 0) { rows = 1; }
 	if (cols <= 0) { cols = 1; }
+	if (mineCount >= rows * cols) { mineCount = rows * cols - 9; }
 	if (mineCount <= 0) { mineCount = 1; }
-	if (mineCount >= rows * cols) { mineCount = rows * cols - 1; }
 }
 
-//	初始化
+//	初始化					
 void Board::init() {
-	flagCount = mineCount;							//	旗数
+	flagCount = mineCount;							//	剩余旗数
 	remainingSafeCells = rows * cols - mineCount;	//	剩余安全块
-	state = GameState::Playing;						//	状态
+	state = GameState::Playing;						//	游戏状态
 
 	board.assign(rows, std::vector<int>(cols, 0));							//	雷图
 	revealed.assign(rows, std::vector<bool>(cols, false));					//	格状态
 	flagged.assign(rows, std::vector< FlagState>(cols, FlagState::None));	//	旗状态
+}
 
-	placeMines();		//	布雷
-	calculateNumber();	//	计算雷数
+//	首次点击				
+void Board::firstClick(int col, int row) {
+	placeMines(col, row);		//	布雷
+	calculateNumber();			//	计算雷数
+	reveal(row, col);			//	第一次默认开块
+	firstMove = false;
 }
 
 //	玩家操作
 void Board::playerMove(int row, int col, bool flagMode) {
+	if (!inRange(row, col)) {		//	越界
+		return;
+	}
+	if (firstMove) { firstClick(row, col); }	//	首次操作
+
 	if (flagMode) {							//	旗模式
 		if (!revealed[row][col]) {			//	未打开
 			toggleFlag(row, col);
@@ -51,12 +62,12 @@ void Board::playerMove(int row, int col, bool flagMode) {
 }
 
 //	获取胜负状态
-GameState Board::getState()const {
+GameState Board::getState() const noexcept {
 	return state;
 }
 
 //	获取旗数
-int Board::getFlags()const {
+int Board::getFlags() const noexcept {
 	return flagCount;
 }
 
@@ -131,8 +142,8 @@ void Board::displayDebug() const {
 	}
 }
 
-//	随机放雷	
-void Board::placeMines() {
+//	随机放雷		
+void Board::placeMines(const int safeRow, const int safeCol) {
 	int currentMineCount = 0;	//	当前写入雷数
 
 	std::uniform_int_distribution<int> rowDist(0, rows - 1);
@@ -141,6 +152,8 @@ void Board::placeMines() {
 		const int r = rowDist(rng);
 		const int c = colDist(rng);
 
+		//	跳过安全区
+		if (abs(r - safeRow) <= 1 && abs(c - safeCol) <= 1) continue;
 		if (board[r][c] == -1) {
 			continue;
 		}
@@ -238,11 +251,6 @@ void Board::expandEmpty(int row, int col) {
 
 //	插旗
 void Board::toggleFlag(int row, int col) {
-	if (remainingSafeCells == rows * cols - mineCount) {
-		reveal(row, col);
-		return;		//	第一次点击直接展开,不插旗
-	}
-
 	if (revealed[row][col] == false) {		//	标记
 		if (flagged[row][col] == FlagState::None) {				//	标旗
 			if (flagCount > 0) {
@@ -312,10 +320,10 @@ void Board::printXLabel() const {
 
 //	打印竖坐标
 void Board::printYLabel(int row) const {
-		if (row < 10) {
-			std::cout << "0" << row << " ";
-		}
-		else {
-			std::cout << row << " ";
-		}
+	if (row < 10) {
+		std::cout << "0" << row << " ";
+	}
+	else {
+		std::cout << row << " ";
+	}
 }
