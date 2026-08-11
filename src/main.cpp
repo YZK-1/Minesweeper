@@ -140,8 +140,8 @@ int main()
 		std::getline(std::cin, line);	//	读取输入流
 		std::istringstream iss(line);	//	写入输入流
 
-		if (!readCoordinate(iss, col, row)) {	//	输入行、列
-			//	行、列写入失败
+		if (!readCoordinate(iss, col, row)) {	//	输入列、行
+			//	列、行写入失败
 			std::string token;
 			iss.clear();		//	清除 fail 状态
 			iss.str(line);		//	重新写入输入流

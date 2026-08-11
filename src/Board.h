@@ -18,6 +18,7 @@ private:
 	int rows;				//	行数
 	int cols;				//	列数
 	int mineCount;			//	雷数
+	int initialMineCount;	//	初始雷数
 	int flagCount;			//	旗数
 	std::mt19937 rng;		//	随机数种子
 	GameState state;		//	胜负状态
@@ -38,7 +39,7 @@ public:
 	
 	Board(int r, int c, int m);							//	构造函数
 	void init();										//	初始化
-	void firstClick(int col,int row);					//	第一次点击		//
+	void firstClick(int row, int col);					//	第一次点击	
 	void playerMove(int row, int col, bool flagMode);	//	玩家操作
 	GameState getState()const noexcept;					//	获取胜负状态
 	int getFlags()const noexcept;						//	获取旗数
@@ -48,7 +49,7 @@ public:
 
 private:
 
-	void placeMines(int safeRow, int safeCol);			//	随机放雷		//
+	void placeMines(int safeRow, int safeCol);			//	随机放雷		
 	void calculateNumber();								//	计算附近雷数	
 	bool inRange(int r, int c) const;					//	判断越界	
 	void reveal(int row, int col);						//	打开格子
