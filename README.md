@@ -45,10 +45,10 @@
 
 ## 编译环境
 
-C++
-Visual Studio 2022
-C++20
-源文件编码：UTF-8 (with BOM)
+- C++
+- Visual Studio 2022
+- C++17
+- 源文件编码：UTF-8 (with BOM)
 
 ## 文件结构
 
