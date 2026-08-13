@@ -1,11 +1,16 @@
-﻿#include "Board.h"
+﻿#include <cstdlib>
+
+#include <vector>
+#include <iostream>
+#include <random>
+
+#include "Board.h"
 
 //	构造函数
 Board::Board(int r, int c, int m)
 	:rows(r),
 	cols(c),
 	mineCount(m),
-	initialMineCount(m),
 	flagCount(0),
 	rng(std::random_device{}()),
 	state(GameState::Playing),
@@ -16,11 +21,12 @@ Board::Board(int r, int c, int m)
 	if (cols <= 0) { cols = 1; }
 	if (mineCount > rows * cols) { mineCount = rows * cols; }
 	if (mineCount <= 0) { mineCount = 1; }
+	initialMineCount = mineCount;
 }
 
 //	初始化					
 void Board::init() {
-	mineCount=initialMineCount;						//	恢复雷数
+	mineCount = initialMineCount;					//	恢复雷数
 	flagCount = mineCount;							//	剩余旗数
 	remainingSafeCells = rows * cols - mineCount;	//	剩余安全块
 	state = GameState::Playing;						//	游戏状态
@@ -64,24 +70,17 @@ void Board::playerMove(int row, int col, bool flagMode) {
 	}
 	if (firstMove) {				//	首次操作
 		firstClick(row, col);
-		return; 
-	}	
-
-	if (flagMode) {							//	旗模式
-		if (!revealed[row][col]) {			//	未打开
-			toggleFlag(row, col);
-		}
-		else {
-			chordReveal(row, col);			//	数字展开(chord)
-		}
+		return;
 	}
-	else {									//	铲模式
-		if (!revealed[row][col]) {			//	未打开
-			reveal(row, col);
-		}
-		else {
-			chordReveal(row, col);			//	数字展开(chord)
-		}
+
+	if (revealed[row][col]) {		//	已打开
+		chordReveal(row, col);		//	数字展开(chord)
+	}
+	else if (flagMode) {			//	旗模式
+		toggleFlag(row, col);
+	}
+	else {							//	铲模式
+		reveal(row, col);
 	}
 }
 
@@ -174,7 +173,8 @@ void Board::placeMines(const int safeRow, const int safeCol) {
 
 	for (int row = 0; row < rows; row++) {
 		for (int col = 0; col < cols; col++) {
-			if (abs(row - safeRow) <= 1 && abs(col - safeCol) <= 1) {
+			if (std::abs(row - safeRow) <= 1 &&
+				std::abs(col - safeCol) <= 1) {
 				continue;
 			}
 			candidates.push_back({ row,col });
@@ -199,7 +199,7 @@ void Board::calculateNumber() {
 				continue;
 			}
 
-			for (auto& dir : direction) {
+			for (const auto& dir : direction) {
 				const int newRow = row + dir[0];
 				const int newCol = col + dir[1];
 
@@ -242,7 +242,6 @@ void Board::reveal(int row, int col) {
 
 		if (remainingSafeCells == 0) { state = GameState::Win; }
 	}
-	//	数字漏掉
 }
 
 //	展开空块	
@@ -251,7 +250,7 @@ void Board::expandEmpty(int row, int col) {
 		return;
 	}
 
-	for (auto& dir : direction) {
+	for (const auto& dir : direction) {
 		const int newRow = row + dir[0];
 		const int newCol = col + dir[1];
 		if (inRange(newRow, newCol) && !revealed[newRow][newCol]	//	没有越界,没有展开
@@ -279,7 +278,7 @@ void Board::expandEmpty(int row, int col) {
 
 //	插旗
 void Board::toggleFlag(int row, int col) {
-	if (revealed[row][col] == false) {		//	标记
+	if (!revealed[row][col]) {		//	标记
 		if (flagged[row][col] == FlagState::None) {				//	标旗
 			if (flagCount > 0) {
 				flagged[row][col] = FlagState::Flag;
@@ -303,7 +302,7 @@ void Board::chordReveal(int row, int col) {
 	}
 
 	int cnt = 0;
-	for (auto& dir : direction) {			//	遍历 8 个方向
+	for (const auto& dir : direction) {			//	遍历 8 个方向
 		const int newrow = row + dir[0];
 		const int newcol = col + dir[1];
 

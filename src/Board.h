@@ -1,8 +1,11 @@
 ﻿#pragma once
 
+#include <cstdlib>
+
 #include <vector>
 #include <iostream>
 #include <random>
+
 #include "GameState.h"
 
 enum class FlagState {		//	旗状态
@@ -36,7 +39,7 @@ private:
 	};
 
 public:
-	
+
 	Board(int r, int c, int m);							//	构造函数
 	void init();										//	初始化
 	void firstClick(int row, int col);					//	第一次点击	
