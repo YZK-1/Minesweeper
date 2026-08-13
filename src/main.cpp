@@ -14,6 +14,10 @@ void readValue(const std::string& prompt, T& value) {
 	while (true) {
 		std::cout << prompt;
 		std::cin >> value;
+		if (std::cin.eof()) {	//	结束输入(如: Ctrl + Z)
+			std::cout << "检测到程序结束,退出程序" << std::endl;
+			std::exit(0);		//	退出程序
+		}
 		if (std::cin.fail()) {
 			std::cin.clear();
 			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -136,9 +140,12 @@ int main()
 		std::cout << "输入坐标,m=切换: ";
 
 		//	输入及校验
-		std::string line;				//	存储输入流
-		std::getline(std::cin, line);	//	读取输入流
-		std::istringstream iss(line);	//	写入输入流
+		std::string line;						//	存储输入流
+		if (!std::getline(std::cin, line)) {	//	读取失败 (如: Ctrl + Z 的 EOF)
+			std::cout << "检测到输入结束,结束程序" << std::endl;
+			exit(0);
+		}
+		std::istringstream iss(line);			//	写入输入流
 
 		if (!readCoordinate(iss, col, row)) {	//	输入列、行
 			//	列、行写入失败
