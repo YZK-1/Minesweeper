@@ -70,6 +70,10 @@ Minesweeper
 
 ## 开发记录
 
+### 2026-08-14
+
+- 使用 ANSI 转义序列替换 system(cls) 清屏
+
 ### 2026-08-13
 
 - 补充 README 文件结构中的 src/Board.cpp
@@ -161,6 +165,8 @@ Minesweeper
 9. 了解 `<chrono>` 库中获取当前时间戳与计算时间戳差值的函数
 10. 在 cin >> 读取后,缓冲区会留有未读入内容及换行符，在其后 getline(cin,line) 遇到 '\n' 会读到空行
 应清除缓冲区。如：`std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');`
+11. 了解到 EOF ,认识到 输入失败后循环输入逻辑 若没有 EOF 校验,输入 EOF 会导致死循环,了解解决方案及其原理
+std::cin四状态good / eof / fail / bad,现用其二 fail / eof
 
 
 最大收获：开启第一个项目

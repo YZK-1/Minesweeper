@@ -133,7 +133,7 @@ int main()
 	auto startTime = std::chrono::steady_clock::now();	//	开始时间戳	
 
 	while (true) {
-		system("cls");	//	清屏	
+		std::printf("\033[2J\033[1;1H");	//	清屏	
 		if (!match(b, startTime)) { break; }		//	不重开 结束	
 
 		std::cout << (flagMode ? "[插旗]" : "[揭开]") << std::endl;
