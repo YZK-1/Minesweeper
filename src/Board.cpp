@@ -80,7 +80,17 @@ void Board::playerMove(int row, int col, bool flagMode) {
 		toggleFlag(row, col);
 	}
 	else {							//	铲模式
-		reveal(row, col);
+		if (flagged[row][col] == FlagState::None) {
+			reveal(row, col);
+		}
+		else if (flagged[row][col] == FlagState::Flag) {
+			flagged[row][col] = FlagState::Question;
+			flagCount++;
+		}
+		else if (flagged[row][col] == FlagState::Question) {
+			flagged[row][col] = FlagState::Flag;
+			flagCount--;
+		}
 	}
 }
 
