@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <random>
+#include <queue>
 
 #include "Board.h"
 
@@ -256,35 +257,30 @@ void Board::reveal(int row, int col) {
 
 //	展开空块	
 void Board::expandEmpty(int row, int col) {
-	if (board[row][col] != 0) {			//	确保空块进入
+	if (board[row][col] != 0) {		//	确保空块进入
 		return;
 	}
-
-	for (const auto& dir : direction) {
-		const int newRow = row + dir[0];
-		const int newCol = col + dir[1];
-		if (inRange(newRow, newCol) && !revealed[newRow][newCol]	//	没有越界,没有展开
-			&& flagged[newRow][newCol] != FlagState::Flag) {		//	不是旗
-
-			if (board[newRow][newCol] == -1) {		//	雷跳过
-				continue;
-			}
-
-			if (board[newRow][newCol] > 0) {		//	数字打开并跳过
-				revealed[newRow][newCol] = true;
-				remainingSafeCells--;				//	安全格 -1
-				continue;
-			}
-
-			if (board[newRow][newCol] == 0) {		//	0 打开并继续递归
-				revealed[newRow][newCol] = true;
-				remainingSafeCells--;				//	安全格 -1
-
-				expandEmpty(newRow, newCol);
+	std::queue <std::pair<int,int>>q;
+	q.push({row,col});
+	
+	while (!q.empty()) {
+		auto [r, c] = q.front(); q.pop();
+		for (const auto& dir : direction) {
+			const int newRow = r + dir[0];
+			const int newCol = c + dir[1];
+			if (inRange(newRow, newCol) && !revealed[newRow][newCol]	//	没有越界,没有展开
+				&& board[newRow][newCol] != -1							//	不是雷
+				&& flagged[newRow][newCol] != FlagState::Flag) {		//	不是旗
+	
+				revealed[newRow][newCol] = true;	//	数字 空块 打开
+				remainingSafeCells--;				//	剩余安全块 - 1
+	
+				if (board[newRow][newCol] == 0) { q.push({ newRow, newCol }); }
 			}
 		}
 	}
 }
+
 
 //	插旗
 void Board::toggleFlag(int row, int col) {
