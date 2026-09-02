@@ -260,9 +260,9 @@ void Board::expandEmpty(int row, int col) {
 	if (board[row][col] != 0) {		//	确保空块进入
 		return;
 	}
-	std::queue <std::pair<int,int>>q;
-	q.push({row,col});
-	
+	std::queue <std::pair<int, int>>q;
+	q.push({ row,col });
+
 	while (!q.empty()) {
 		auto [r, c] = q.front(); q.pop();
 		for (const auto& dir : direction) {
@@ -271,16 +271,15 @@ void Board::expandEmpty(int row, int col) {
 			if (inRange(newRow, newCol) && !revealed[newRow][newCol]	//	没有越界,没有展开
 				&& board[newRow][newCol] != -1							//	不是雷
 				&& flagged[newRow][newCol] != FlagState::Flag) {		//	不是旗
-	
+
 				revealed[newRow][newCol] = true;	//	数字 空块 打开
 				remainingSafeCells--;				//	剩余安全块 - 1
-	
+
 				if (board[newRow][newCol] == 0) { q.push({ newRow, newCol }); }
 			}
 		}
 	}
 }
-
 
 //	插旗
 void Board::toggleFlag(int row, int col) {

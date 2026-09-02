@@ -1,4 +1,5 @@
 ﻿#include <cstdlib>
+#include <cstdio>
 
 #include <iostream>
 #include <string>
@@ -103,8 +104,8 @@ bool match(Board& b, std::chrono::steady_clock::time_point& startTime) {
 
 	if (!continueGame) {
 		if (askRestart(b)) {
-			startTime = std::chrono::steady_clock::now();	//	更新开始时间戳
-			system("cls");	//	清屏	
+			startTime = std::chrono::steady_clock::time_point{};	//	重置开始时间戳
+			std::printf("\033[2J\033[1;1H");	//	清屏	
 			playing(b);		//	打印新图
 			continueGame = true;
 		}
@@ -130,11 +131,11 @@ int main()
 	int col;
 	bool flagMode = false;	//	默认揭开
 
-	auto startTime = std::chrono::steady_clock::now();	//	开始时间戳	
+	auto startTime = std::chrono::steady_clock::time_point{};	//	开始时间戳	
 
 	while (true) {
-		std::printf("\033[2J\033[1;1H");	//	清屏	
-		if (!match(b, startTime)) { break; }		//	不重开 结束	
+		std::printf("\033[2J\033[1;1H");		//	清屏	
+		if (!match(b, startTime)) { break; }	//	不重开 结束	
 
 		std::cout << (flagMode ? "[插旗]" : "[揭开]") << std::endl;
 		std::cout << "输入坐标,m=切换: ";
@@ -142,8 +143,8 @@ int main()
 		//	输入及校验
 		std::string line;						//	存储输入流
 		if (!std::getline(std::cin, line)) {	//	读取失败 (如: Ctrl + Z 的 EOF)
-			std::cout << "检测到输入结束,结束程序" << std::endl;
-			exit(0);
+			std::cout << "检测到输入结束,退出程序" << std::endl;
+			std::exit(0);
 		}
 		std::istringstream iss(line);			//	写入输入流
 
@@ -157,6 +158,10 @@ int main()
 			continue;
 		}
 
+		//	首开计时
+		if (startTime == std::chrono::steady_clock::time_point{}) {
+			startTime = std::chrono::steady_clock::now();
+		}
 		b.playerMove(row, col, flagMode);
 	}
 }
