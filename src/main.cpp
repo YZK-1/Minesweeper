@@ -158,10 +158,12 @@ int main()
 			continue;
 		}
 
+		const bool move = b.playerMove(row, col, flagMode);	//	执行玩家操作
+
 		//	首开计时
-		if (startTime == std::chrono::steady_clock::time_point{}) {
+		if (move && startTime == std::chrono::steady_clock::time_point{}) {
 			startTime = std::chrono::steady_clock::now();
 		}
-		b.playerMove(row, col, flagMode);
+
 	}
 }

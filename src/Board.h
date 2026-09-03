@@ -43,7 +43,7 @@ public:
 	Board(int r, int c, int m);							//	构造函数
 	void init();										//	初始化
 	void firstClick(int row, int col);					//	第一次点击	
-	void playerMove(int row, int col, bool flagMode);	//	玩家操作
+	bool playerMove(int row, int col, bool flagMode);	//	玩家操作
 	GameState getState()const noexcept;					//	获取胜负状态
 	int getFlags()const noexcept;						//	获取旗数
 	void reset(bool newMap = true);						//	重新开始

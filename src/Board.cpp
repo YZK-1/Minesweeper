@@ -65,13 +65,13 @@ void Board::firstClick(int row, int col) {
 }
 
 //	玩家操作
-void Board::playerMove(int row, int col, bool flagMode) {
+bool Board::playerMove(int row, int col, bool flagMode) {
 	if (!inRange(row, col)) {		//	越界
-		return;
+		return false;
 	}
 	if (firstMove) {				//	首次操作
 		firstClick(row, col);
-		return;
+		return true;
 	}
 
 	if (revealed[row][col]) {		//	已打开
@@ -93,6 +93,7 @@ void Board::playerMove(int row, int col, bool flagMode) {
 			flagCount--;
 		}
 	}
+	return true;
 }
 
 //	获取胜负状态
