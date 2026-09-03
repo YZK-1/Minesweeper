@@ -22,6 +22,10 @@
 - 清屏功能
 - 延迟布雷
 
+## 演示视频
+
+<video src="demo/Minesweeper-demo.mp4" controls=""></video>
+
 ## 游戏说明
 
 切换模式:
@@ -53,11 +57,11 @@
 ## 文件结构
 
 ```
-Minesweeper
-│
+Minesweeper/
 ├─ README.md
-│
-└─ src
+├─ demo/
+│   └─ Minesweeper-demo.mp4
+└─ src/
 	├─ Board.h
 	├─ Board.cpp
 	├─ GameState.h
@@ -69,6 +73,10 @@ Minesweeper
 - 暂无
 
 ## 开发记录
+
+### 2026-09-03
+
+- 添加演示视频
 
 ### 2026-09-02
 
