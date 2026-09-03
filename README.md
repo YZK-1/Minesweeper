@@ -24,7 +24,10 @@
 
 ## 演示视频
 
-<video src="demo/Minesweeper-demo.mp4" controls=""></video>
+
+  <img src="demo/Minesweeper-demo.gif" width="420" alt="扫雷演示"  >
+
+
 
 ## 游戏说明
 
@@ -60,7 +63,7 @@
 Minesweeper/
 ├─ README.md
 ├─ demo/
-│   └─ Minesweeper-demo.mp4
+│   └─ Minesweeper-demo.gif
 └─ src/
 	├─ Board.h
 	├─ Board.cpp
